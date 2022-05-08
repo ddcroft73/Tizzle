@@ -66,8 +66,8 @@ class Contacts:
             _contact_name,
             _phone_num,
             _provider_name,
-            _group
-           # []     # list used to hold any messages when a contact is in a group
+            _group,
+            []     # list used to hold any messages when a contact is in a group
         ]          # list is only utilized if a group message is created so if the user decides to 
                    # stop the message it does not effect the other members. 
 
