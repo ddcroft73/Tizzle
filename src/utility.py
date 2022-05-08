@@ -331,11 +331,25 @@ def warn_or_continue(msg: str, warn: bool=True) -> bool:
         return False                    
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def contact_exists(_contact_info: list[list[str]], _name: str) -> bool:
-    """True if a contact exists"""
+    """True if a contact exists."""
     found: bool = False
+
     for contact in _contact_info:
         if contact[NAME] == _name.title():
-            found = True
+            found = True         
+            break    
+
+    return found  
+#-------------------------------------------------------------------------------------------------------------------------------------------
+def phone_exists(_contact_info: list[list[str]], _phone: str) -> bool:
+    """True if a phone # is in use."""
+    found: bool = False
+
+    for contact in _contact_info:
+        if contact[PHONE_NUMBER] == _phone:
+            found = True         
+            break    
+
     return found  
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def group_exists(
@@ -498,6 +512,9 @@ def create_batch_path_command(_msg: str,
         else:
             new_message = _msg  
         return new_message
+
+    # Need to know if this is a group text, if so need to add the msgid as an argument so the send function
+    # can assees if the mesage is still alive for each contact in the group.
 
     clean_msg: str = clean_message(_msg)
     python_path: str = wrap_quotes(executable) + " "    

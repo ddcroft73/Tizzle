@@ -2,6 +2,7 @@
 
 # data functions
 from utility import (
+    phone_exists,
     write_data,
     load_data,
     warn_or_continue,
@@ -31,10 +32,11 @@ class Contacts:
                                    Can be set at contact creation.
                                    Defaults to None.
         """         
-        _contact_name: str = args.name.title() 
-        _phone_num: str = args.phone 
+        # Contacts cannot exist witht he same Name or phone number.
+        _contact_name:  str = args.name.title() 
+        _phone_num:     str = args.phone 
         _provider_name: str = args.provider.title()
-        _group: str | None = args.group.upper() if args.group is not None else None
+        _group:  str | None = args.group.upper() if args.group is not None else None
 
         contacts_info:  list[list[str]] = load_data(CONTACTS_DB)   
 
@@ -46,23 +48,29 @@ class Contacts:
             return
         
         if (contact_exists(contacts_info, _contact_name)):  
-            print(f"{YELLT}Cannot have more than one contact with the same name.{ENDC}")
+            print(f"{YELLT}\nCannot have more than one contact with the same name.{ENDC}")
             return
-        
+
+        # check to see if thes phone # is unique.
+        if (phone_exists(contacts_info, _phone_num)):
+            print(f"{YELLT}\nCannot have more than one contact with the same phone.{ENDC}")
+            return
+
         if (_group is not None): 
            if (not group_exists(contacts_info, _group, output=False)):
                print(f'GROUP: {BLUET}{_group}{ENDC} does not exist.\n'
-                     f'{YELLT}A group must contain two or more contacts{ENDC}.')
+                     f'{YELLT}\nA group must contain two or more contacts{ENDC}.')
                return
-# Gotta add a dict as a new list element to track the messages for each contact.
-# Start here to add feature
+               
         new_contact: list = [
             _contact_name,
             _phone_num,
             _provider_name,
             _group
-           # {}     # add a blank dict to track the users messages
-        ]
+           # []     # list used to hold any messages when a contact is in a group
+        ]          # list is only utilized if a group message is created so if the user decides to 
+                   # stop the message it does not effect the other members. 
+
         contacts_info.append(new_contact)      
         write_data(contacts_info, CONTACTS_DB) 
         
@@ -108,11 +116,14 @@ class Contacts:
             User can also change the contact to a different name      
 
         """
-        _contact_name: str = args.contact_id.title()
-        _name: str|None = args.name.title() if args.name is not None else None
-        _number: str|None = args.phone_number
+        #user cannot modify a contact to have the same name or number has another
+        # user 
+
+        _contact_name:  str = args.contact_id.title()
+        _name:     str|None = args.name.title() if args.name is not None else None
+        _number:   str|None = args.phone_number
         _provider: str|None = args.provider.title() if args.provider is not None else None
-        _group: str|None = args.group.upper() if args.group is not None else None
+        _group:    str|None = args.group.upper() if args.group is not None else None
         
         contacts_info: list[list[str]] = load_data(CONTACTS_DB)        
         found: bool
@@ -120,9 +131,9 @@ class Contacts:
 
         # make sure user gave me something, anything to work with.
         if (_name is None and 
-           _number is None and 
-           _provider is None and 
-           _group is None
+            _number is None and 
+            _provider is None and 
+            _group is None
            ):
             print(f'\n{YELLT}You must enter the property of the contact you wish to modify{ENDC},'
                   f'\nName, Provider, Phone and/or Group. ' )          
@@ -136,6 +147,11 @@ class Contacts:
             if (contact_exists(contacts_info, _name)):
                 print(f"\n{YELLT}Cannot change to a name that already exists.{ENDC}")
                 return                
+
+        if (_number is not None):
+            if (phone_exists(contacts_info, _number)):
+                print(f"\n{YELLT}Phone numbers are unique to each contact.{ENDC}")
+                return      
 
         found, valid_info, contacts_info = self.__update_contact(
                 contacts_info, 
