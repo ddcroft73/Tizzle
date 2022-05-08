@@ -1,4 +1,4 @@
-# Tizzle -  Send text messages now or schedule for anytime in the future for free.
+# Tizzle -  Remind yourself or one or more contacts via free text messages in many different ways.
 
 ## Purpose:
 I always respond better to a text message. When I hear that familiar chime, I know someone in my life (80% chance anyway) is trying to reach me and it could be more important, than an email. There for I am more apt to check it and see whats up. I made this application to send myself reminders about important dates, meetings, and to remind me when largish bills are due. "It's your last chance to get the trash on the curb!". Or even to send a reminder to a friend. "I'll text you in the morning to remind you about the meeting." Schedule a text now while its fresh to be sent to them at a certain time the next day, and forget it. This has proven just a useful as reminding myself. 
@@ -7,19 +7,20 @@ I was never going to put this application out there but it's literally so conven
 
 ## Features: 
 
-- 100% FREE Text messages. No API needed.
-- Send or schedule FREE text messages, for one or more contacts, now or anytime in the future from the command line.
-- Don't try to remember to send that text tomorrow, Schedule it now and it's done. 
-- For really important tasks. Schedule a text to repeat every few minutes or once an hour.
-- Designate a particular contact as "default" so messages can be scheduled with minimal command line arguments.
-- Complete and thorough help with examples from the command line.
-- Create and maintain contacts and groups of contacts from the terminal.
-- Backup the databases.
-- Recover the databases.
-- Rebuild the databases.
-- Recover message tasks from the message database or the backup in case the tasks were deleted.
-- Make modifications to a message that has expired or is still active.  Change the message or any of the times and dates.
-- Tracks and monitor the status of all messages.
+- No cell service, no API, 100% FREE.
+- Schedule a reminder, promised, or updated text for you, another person or entire group to be sent on any day in multiple ways and cycles.
+- Disable recurring texts from your phone. (Optional sister program, Send reply to the message to stop.)
+- Anti-Spam measures to stop abuse.
+- Designate yourself as the default contact to take advantage of fast CLI commands.
+- Make modifications to current, passed, or future messages, in place.
+- Only one small 3rd party app.
+- Complete maintenance of all databases. Backup, rebuild, restore.
+- Failsafe task recovery in case they get deleted or become corrupted.
+- Thorough command line help color coded with examples.
+- Rerun feature that will reschedule a past reminder.
+- Track and monitor the status of messages in real time.
+
+
  
 
 ## Requirements:
@@ -38,13 +39,6 @@ I plan to find a work around for this if necessary and will likely implement Oau
 - Full documentation.
 - Add support to schedule tasks on remote machines. 
 - Add User and password support for using on machines that you don't have admin rights.
-- Anti-Spam measures.
-  - Crippled the hourly and minute tasks so a user cannot send them indefinitely.
-    - Limits were imposed. 
-      - Hourly: 1 per hour for max 6 hours.
-      - Minute: no more than 1 every 5, 10, 15, or 20 minutes.
-  - Still need to do something to the contacts and\or Groups.
-      - maybe make it only support groups up tp 5.
 - App is being totally re-written using OOD.
   - Change the makeshift Json database to use a more traditional DB.   
   - Interaction with the Task Scheduler seems to be a bit sluggish. Likely it's my programming not being optimized. But the pauses during deletions and scheduling are normal. 
