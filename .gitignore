@@ -1,0 +1,5 @@
+*.txt
+db/*.bck
+settings/*.bck
+batch/*.bat
+src/__pycache__/*.*

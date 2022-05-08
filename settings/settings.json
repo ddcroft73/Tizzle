@@ -1,0 +1,7 @@
+{
+    "sender_credentials": ["user@gmail.com","apppassword"],
+    "smtp_server": "smtp.gmail.com",
+    "smtp_port": 465,
+    "pword": "pword",
+    "user": "computerUserId"
+}
