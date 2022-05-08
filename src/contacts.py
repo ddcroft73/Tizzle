@@ -55,7 +55,7 @@ class Contacts:
                      f'{YELLT}A group must contain two or more contacts{ENDC}.')
                return
 # Gotta add a dict as a new list element to track the messages for each contact.
-
+# Start here to add feature
         new_contact: list = [
             _contact_name,
             _phone_num,
