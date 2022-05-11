@@ -100,7 +100,6 @@ def get_unique_id() -> str:
             id_exists = False
 
     return uid        
-
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def get_time_date(_when: str) -> str:
     """Returns the current time, date or both in string format """
@@ -126,8 +125,7 @@ def get_time_date(_when: str) -> str:
             res = tom.strftime("%m/%d/%Y %H:%M:%S").split()[0]
                 
 
-    return res
-    
+    return res    
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def get_credentials(_user: str, _pass: str) -> list[str]:
     """
