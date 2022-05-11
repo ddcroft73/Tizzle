@@ -67,7 +67,7 @@ class Contacts:
             _phone_num,
             _provider_name,
             _group,
-            []     # list used to hold any messages when a contact is in a group
+            []     # list used to hold any group messages.
         ]          # list is only utilized if a group message is created so if the user decides to 
                    # stop the message it does not effect the other members. 
 
@@ -184,6 +184,9 @@ class Contacts:
             args (object): command line arguments
             contact_name (str): The contact to view, or all to view all. 
         """
+        # list removed of the msg_id list
+        contacts_viewable: list[str] = []
+
         # enables this method to be called from inside the application
         try:
            contact_name: str = args.name.title()
@@ -197,19 +200,19 @@ class Contacts:
             print(f'\n{YELLT}No contacts to view{ENDC}.')
             return
 
-        if (contact_name.lower() == 'all'):
-            # view em all      
-
-            # go through ebery contact and remove the dict
-            # so it is not visible
-            
-            contacts_header.extend(contact_info)
+        if (contact_name.lower() == 'all'):        
+            # remove the msg_id list from each contact so that it is invisible
+            # in the table
+            for contact in contact_info:
+               contacts_viewable.append(contact[:-1])
+               
+            contacts_header.extend(contacts_viewable)
             print('\n'+tabulate(contacts_header, headers='firstrow'))            
         else:
             # view this contact
             for contact in contact_info:                
                if (contact_name == contact[NAME]):                   
-                   contacts_header.append(contact) # [:-1]skip the dictionary
+                   contacts_header.append(contact[:-1]) # [:-1]skip the msgID list
                    print('\n'+tabulate(contacts_header, headers='firstrow'))
                    found = True
 

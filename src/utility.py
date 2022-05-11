@@ -351,6 +351,16 @@ def phone_exists(_contact_info: list[list[str]], _phone: str) -> bool:
             break    
 
     return found  
+
+#-------------------------------------------------------------------------------------------------------------------------------------------
+def get_contact(_contacts: list[list[str]], _contact_name: str) -> list[str] | None:    
+    '''
+    gets a contacts info or returns None if doesnt exist.
+    '''
+    for contact in _contacts:
+        if contact[NAME] == _contact_name:
+            return contact
+    return  
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def group_exists(
     _contact_info: list[list[str]], 
@@ -512,21 +522,25 @@ def create_batch_path_command(_msg: str,
         else:
             new_message = _msg  
         return new_message
-
-    # Need to know if this is a group text, if so need to add the msgid as an argument so the send function
-    # can assees if the mesage is still alive for each contact in the group.
-
+    
     clean_msg: str = clean_message(_msg)
     python_path: str = wrap_quotes(executable) + " "    
     this_path: str = wrap_quotes(os_join(MAIN_DIR, SRC_DIR, PROG_NAME))
     _destination = wrap_quotes(_destination) + " "
-    arg: str = ' "send" '        
+    arg_send: str = ' "send" '        
     
     message: str = wrap_quotes(eval_for_stop_message(_msg_id, clean_msg, _frequency)) 
-    command: str = python_path + this_path  + arg + _destination + message
+    # Need to know if this is a group text, if so need to add the msgid as an argument so the send function
+    # can assees if the mesage is still alive for each contact in the group.
+    if _dest_type == GROUP:
+        arg_msgID: str = ' "--msg_id" '
+        msg_id = wrap_quotes(_msg_id)
+        command: str = python_path + this_path  + arg_send + _destination + message + arg_msgID + msg_id
+    else:
+        command: str = python_path + this_path  + arg_send + _destination + message
 
-    bat_path: str = os_join(MAIN_DIR, BAT_DIR, _msg_id+".bat")           
-
+    bat_path: str = os_join(MAIN_DIR, BAT_DIR, _msg_id+".bat")   
+    
     return (bat_path, command)
 
 #-------------------------------------------------------------------------------------------------------------------------------------------

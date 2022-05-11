@@ -1,5 +1,5 @@
 # message.py
-from asyncio import subprocess
+
 from re import findall
 from tabulate import tabulate
 from providers import PROVIDERS
@@ -145,21 +145,26 @@ class Message:
             _destination, 
             _dest_type
         )
-        if (not _destination): return                     
-        
+        if (not _destination): return              
+
         if (validate_time_date(_time_to_text, _date_to_text)):
             if (valid_schedule_time(_time_to_text, _date_to_text)):  
 
-                unique_msg_id: str = get_unique_id()                
+                unique_msg_id: str = get_unique_id()            
+                # if this is a group mesage add the message ID to the contacts ID list
+                if(_dest_type == 2):
+                    self.__add_msgid_to_contacts_list(unique_msg_id, _destination)    
+                
                 # create the bat file path and command only so that 
                 # WTS has a prom path tho schedule a task for
                 bat_path, bat_command = create_batch_path_command(
                     _msg, 
                     unique_msg_id, 
                     _destination,
-                    _frequency
+                    _frequency,
+                    _dest_type
                 )                
-
+                
                 return_code: int = self.__schedule_task(
                     _time_to_text, 
                     _date_to_text,
@@ -184,7 +189,8 @@ class Message:
                         end_time_date,
                         _dow,
                         _dom
-                    )                                        
+                    )                   
+
                     create_batch_file(bat_path, bat_command)       
 
                     print_report(
@@ -213,9 +219,9 @@ class Message:
             All the Cases of the destination will be sorted out by the time it reaches here.
         """
         _destination: str = args.destination        
-        _msg:         str = args.message.replace(":", "") # colons seem to mess up the texts? IDEKW 86 em' for now.
+        _msg:         str = args.message#.replace(":", "") # colons seem to mess up the texts? IDEKW 86 em' for now.
                                                           # The texts come out blank. Have narrowed it down to this.
-        _msg_id: str|None = args.msg_id                   # Only used by the ap when sending group texts
+        _msg_id: str|None = args.msg_id.upper() if args.msg_id is not None else None                 # Only used by the ID when sending group texts
 
         settings: dict[str,str|int] = load_data(SETTINGS_FILE)
         contacts: list[list[str]] = load_data(CONTACTS_DB)  
@@ -229,12 +235,15 @@ class Message:
                 break
 
             elif (_destination.isupper()):                    # Group
-                if (contact[GROUP_NAME] == _destination):
-                    print(f'Sending text to {YELLT}{contact[NAME]}{ENDC} ' 
-                          f'of group[{YELLT}{contact[GROUP_NAME]}{ENDC}].')      
+                if (contact[GROUP_NAME] == _destination):                    
+                    # Check the contacts message list to see if they get this message.
+                    if _msg_id in contact[MSG_LIST]:      
+                        print(f'Sending text to {YELLT}{contact[NAME]}{ENDC} ' 
+                              f'of group[{YELLT}{contact[GROUP_NAME]}{ENDC}].')
+                        self.__send_text(_msg, contact, settings)
+                    else:
+                        print(f'{BLUET}{contact[NAME]}{ENDC}: {YELLIT} has stopped this message{ENDC}.')      
 
-                    # is this msg enabled for this user? Or did they cancel it?                  
-                    self.__send_text(_msg, contact, settings)
                     found = True
                     sleep(0.5)
 
@@ -355,7 +364,8 @@ class Message:
             # find the message being modified and present the user with the changes
             # to be approved.
             for msg in messages:
-                if msg[ID] == _msg_id:                    
+                if msg[ID] == _msg_id:                 
+                    
                     msg = display_message_changes(
                         msg,
                         _msg_id, 
@@ -366,8 +376,15 @@ class Message:
             if warn_or_continue(
                    f"\n{BLUET}Would you like to commit these changes{ENDC}?", warn=False
                 ): 
+
+                # Is this a group message? If so add it back to the group mebers lists
+                # look up the message in the database by bath file size
+                if args.dest_type == GROUP or self.__is_group_message(_msg_id):
+                    self.__add_msgid_to_contacts_list(_msg_id, args.destination)
+                
+
                 if edit_batch: 
-                   edit_batchfile(args.message, _msg_id, args.destination)
+                   edit_batchfile(args.message, _msg_id, args.destination, args.dest_type)
 
                 # may need to only edit the batch file if the dest, dest_type, and msg changed only.
                 # no reason to mess with the WTS if so.
@@ -538,6 +555,26 @@ class Message:
 ##================================================================================================================================
 # PRIVATE METHODS 
 #=================================================================================================================================
+
+#-------------------------------------------------------------------------------------------------------------------------------------------
+    def __is_group_message(self, _msg_id: str) -> bool:
+        '''
+        True if this message is a group message.
+        Reads the contents of its batch file to see where its going
+        based on the size of the instructions.
+        '''
+        bat_file: str = os_join(MAIN_DIR, BAT_DIR, _msg_id+'.bat')
+
+        with open(bat_file, 'r') as file:
+            file_data: str  = file.readline()
+        
+        file_data: list[str] = file_data.split()
+        
+        if len(file_data) == 8: return True
+
+        return False
+        
+#-------------------------------------------------------------------------------------------------------------------------------------------
     def __stop_responder(self, log_: str, debug=False) -> None:
         '''
         Stops the responder by killing the process.
@@ -670,6 +707,27 @@ class Message:
         if return_code == SUCCESS:
             if create_batch:
                 create_batch_file(bat_path, bat_command)
+
+#-------------------------------------------------------------------------------------------------------------------------------------------
+    def __add_msgid_to_contacts_list(self, _msg_id: str, _destination: str) -> None:
+        '''
+        adds the message ID to the list of every contact in the group /destinatiin.
+        '''        
+        destination: str
+
+        contacts_info: list[list[str|list[str]]] = load_data(CONTACTS_DB)
+        if _destination is None:
+            destination = get_message_from_disk(_msg_id)[DESTINATION]
+        else:
+            destination = _destination
+
+        for contact in contacts_info:
+            if contact[GROUP_NAME] == destination.upper():
+                contact[MSG_LIST].append(_msg_id)
+
+        write_data(contacts_info, CONTACTS_DB)        
+
+
 #-------------------------------------------------------------------------------------------------------------------------------------------
     def __set_for_hour_minute(self, _freq: str, _mo: str) -> str:
         """ evaluate _frequency and format output for HOUR Minute"""
@@ -801,6 +859,7 @@ class Message:
                 # if it says Disabled, break the loop to maintain it.
                 if (msg[STATUS] == "Disabled"):
                     continue
+
                 elif msg[STATUS] == "Enabled" :
                     if ( msg[END_DATE] == "Recurring" ):
                         msg[STATUS] = "Started"
@@ -834,17 +893,35 @@ class Message:
                         msg[STATUS] = "Started"     
                       
                 # ended?
-                if (not valid_schedule_time(end_time, end_date, output=False)): 
+                if (not valid_schedule_time(end_time, end_date, output=False) and msg[STATUS] != 'Disabled'): 
                      if msg[STATUS] in ["Started", 'Started(m)', 'Rewind'] :
                         msg[STATUS] = "Expired"
 
                      if msg[FREQUENCY] in ['DAILY', "WEEKLY", 'MONTHLY']:
                          msg[STATUS] == 'Expired'
+                     
+                     # If this message is associated with  group and it has expired, 
+                     # remove it from all members lists
+                     self.__edit_group_members_lists(msg[ID])
 
             write_data(messages,DB)
 
+#------------------------------------------------------------------------------------------------------------------------------------------- 
     
+    def __edit_group_members_lists(self, _msg_id: str) -> None:
+        '''
+        if the msg is apart of a group list then delete the msgID from all lists
+        it has expired.
+        '''
+        contact_info: list[list[str]] = load_data(CONTACTS_DB)
+        #This message id will only be used once, there for should be deleted from any lists its on.
+        for contact in contact_info:
+            if _msg_id in contact[MSG_LIST]:
+                contact[MSG_LIST].remove(_msg_id)
+                write_data(contact_info,CONTACTS_DB)
 
+#------------------------------------------------------------------------------------------------------------------------------------------- 
+        
 ##===================================================================================================
 # new HELPER MEthods  
 ##===================================================================================================

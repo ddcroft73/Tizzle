@@ -148,6 +148,9 @@ def create_command_list_validate(
     if (not changes_made(arg_d)):
         print(f'{YELLIT}No modifications detected{ENDC}.')
         resume = False        
+    
+    # Need to validate if the users choices are legal or not. that will stop a lot of chaos down the line.
+    # So much validation, should probably have done it all at once?
 
     if (_msg is not None):
         edit_batch = True 
@@ -157,8 +160,6 @@ def create_command_list_validate(
         edit_batch = True    
 
     # Refactor all this because I should not be validating like this in two spots
-    # Another reason you need to rewrite this application. Adding too much shit that
-    # you didnt plan in the first place and now its all mangled up.    
     if not resume: return (resume, edit_batch, arg_d, command)
 
     resume = validate_time_options(_start_time, _date_to_text, _duration, _end_date, freq, mod)     
@@ -342,6 +343,9 @@ def display_message_changes(
     Returns:
         a copy of the message with changes made.
     """
+    # THIS CODE NEEDS TO BE REFACTORED:
+    # The main problem is with the below functions eval_send and eval_end in particular. 
+    # I need to rethink how I do the visual reprensentain of the modified message.
     changes: list[str] = []    
     
     # THe message being modded.
@@ -452,9 +456,9 @@ def eval_sendtime_date(d: dict, msg: list, lst: list) -> None:
         # If both are None:     
         if (d['_start_time']  is None and  d['_date_to_text']  is None):  
            lst.append( old_start_time + '\n' + old_start_date  )
-           msg[SEND_TIME_DATE] = old_start_time + '\n' + old_start_date    
-    else:
+           msg[SEND_TIME_DATE] = old_start_time + '\n' + old_start_date  
 
+    else:
     # if only the time was changed
         if (
             d['_start_time']   is not None and 
@@ -462,6 +466,7 @@ def eval_sendtime_date(d: dict, msg: list, lst: list) -> None:
         ):
             lst.append(d['_start_time'] + '\n' + msg[SEND_TIME_DATE].split('\n')[1].strip())
             msg[SEND_TIME_DATE] = d['_start_time'] + '\n' + msg[SEND_TIME_DATE].split('\n')[1].strip()     
+            
         # Only the date changed    
         elif (
             d['_start_time']   is None and 
@@ -482,6 +487,8 @@ def eval_sendtime_date(d: dict, msg: list, lst: list) -> None:
             d['_date_to_text'] is None
             ):
             lst.append(msg[SEND_TIME_DATE])
+
+
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def eval_endtime_date(d: dict, msg: list, lst: list) -> None:
     """make changes to message in memory and collect them for viewing later.
@@ -491,8 +498,8 @@ def eval_endtime_date(d: dict, msg: list, lst: list) -> None:
         msg -- a copy of the message from the DB that is being modified
         lst -- change list that is populated and used to display the changes.
     """
-    # If the user changed duration or SendDTIme THen the endTime must be altered as well
-    # THis is only for display and message saving purposes. 
+    # ALL OF THIS NEEDS TO BE REFACTORED, It takes to long to figure out what is going on if a bug is found.
+
     stop_time:      str = msg[END_DATE].split('\n')[0]
     old_start_time: str = get_message_from_disk(msg[ID])[SEND_TIME_DATE].split('\n')[0] 
     new_start_time: str = msg[SEND_TIME_DATE].split('\n')[0]
@@ -502,9 +509,9 @@ def eval_endtime_date(d: dict, msg: list, lst: list) -> None:
 
     end_date: str = msg[END_DATE].split('\n')[1]
     
+
+    # Must have different rules for different types of messages
     if 'EVERY' in msg[FREQUENCY]:
-        # THis is a mess. Changinf duration effects stop_time , But I seem to have fixed it
-        #  WITH A NASTY BANDAID... REFACTOR THIS SHIT!
         
         if d['_duration'] is not None:
             new_end_time: str = calculate_end_time(
@@ -537,7 +544,7 @@ def eval_endtime_date(d: dict, msg: list, lst: list) -> None:
             d['_stop_time'] = new_end_time    
 
 
-        # Start date done changed.... reflect that shit here.
+        # Start date changed.... reflect in end.
         if d['_date_to_text'] is not None :  
             # make end date be this date
             lst.append(stop_time + '\n' + d['_date_to_text']  )
@@ -549,29 +556,56 @@ def eval_endtime_date(d: dict, msg: list, lst: list) -> None:
             lst.append(stop_time + '\n' + old_start_date  )
             msg[END_DATE] = stop_time + '\n' + old_start_date
         
-        #print(f"{d['_duration']= } \n{d['_start_time']= } \n{d['_stop_time']= }")
-        
         # Stop_Time was effected by eiter duration or stoptime
         if d['_stop_time'] is not None :
             # change the msg to reflect the new stop time and also the terminal
             lst.append(d['_stop_time'] + '\n' + end_date  )
             msg[END_DATE] = d['_stop_time'] + '\n' + end_date
 
-
-    else:
+# ALl Recurring messsages
+    elif  msg[FREQUENCY] != 'ONCE':
         # All others
         if d['_end_date']  is not None:
             # if no endTime, append 00:00
             if stop_time == '': stop_time = '00:00'
             lst.append(stop_time + '\n' + d['_end_date'])
             msg[END_DATE] = stop_time + '\n' + d['_end_date']
-        # USe if for every scenario, End date is None and stop time id not noe
-        # dtop time is none end is not none, an both
-        # and recurring
+            
         elif  d['_end_date'] is None:    
             lst.append(stop_time + '\n' + end_date)
+            msg[END_DATE] = stop_time + '\n' + end_date      
+
+
+    # If its a single message then THe end time must reflect the start time since changing the endtime
+    # On a ONCE meddage will not work. There is no endtime option, but it must be represented in the database. 
+
+    elif  msg[FREQUENCY] == 'ONCE':
+        # if the start time changed then make end time == start and exit 
+        if d['_start_time']   is not None:
+            lst.append(d['_start_time'] + '\n' + end_date)
+            msg[END_DATE] = d['_start_time'] + '\n' + end_date
+            return  # Just catches the start time to make the end reflet it, get iut, now!
+
+        # if the start date change... and not the end date
+        # If the start date changed, reflect the end date
+        if d['_date_to_text'] is not None and d['_end_date']  is None:  
+            # make end date be this date
+            lst.append(stop_time + '\n' + d['_date_to_text']  )
+            msg[END_DATE] = stop_time + '\n' + d['_date_to_text'] 
+
+        # All others
+        if d['_end_date']  is not None:
+            # if no endTime, append 00:00
+            if stop_time == '': stop_time = '00:00'
+            lst.append(stop_time + '\n' + d['_end_date'])
+            msg[END_DATE] = stop_time + '\n' + d['_end_date']
+            
+        elif  d['_end_date'] is None and d['_date_to_text'] is None:    
+            lst.append(stop_time + '\n' + end_date)
             msg[END_DATE] = stop_time + '\n' + end_date
-            pass    
+    
+
+
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def eval_frequency_changes(d: dict, msg: list, lst: list) -> None:
     """make changes to message in memory and collect them for viewing later.
@@ -606,7 +640,7 @@ def display_for_approval(_msg_id: str, change_list: list[str]) -> None:
     messages_header.extend([change_list])
     print('\n'+tabulate(messages_header, headers='firstrow'))       
 #-------------------------------------------------------------------------------------------------------------------------------------------
-def edit_batchfile(_message: str, _msg_id: str, _destination: str) -> None:
+def edit_batchfile(_message: str, _msg_id: str, _destination: str, _dest_type: int) -> None:
     """Overwrites the current Batch file with either a new Destination and\or Message"""
     # If the _destination is None It stays the same retreive that data
     # It should have a destination and a dtype.
@@ -623,7 +657,7 @@ def edit_batchfile(_message: str, _msg_id: str, _destination: str) -> None:
     
     # fullfill the frequency parameter when creating a new batch file
     freq: str = get_message_from_disk(_msg_id)[FREQUENCY]
-    bat_path, command = create_batch_path_command(_message, _msg_id, _destination, freq)
+    bat_path, command = create_batch_path_command(_message, _msg_id, _destination, freq, _dest_type)
     create_batch_file(bat_path, command)
 
     

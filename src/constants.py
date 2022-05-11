@@ -48,7 +48,7 @@ NAME:            int = 0
 PHONE_NUMBER:    int = 1
 PROVIDER:        int = 2   
 GROUP_NAME:      int = 3
-MSG_DICT:        int = 4
+MSG_LIST:        int = 4
 
 SUCCESS:         int = 0
 CONTACT:         int = 1
@@ -59,4 +59,4 @@ GROUP:           int = 2
 RESPONDER_DIR:   str = r'C:\projects\python\Responder'
 RESPONDER_PROG:  str = 'main.py'
 RESPONDER_LOG:   str = os_join(RESPONDER_DIR, 'responder.log')
-RESPONDER:       str = os_join(RESPONDER_DIR, RESPONDER_PROG)
+RESPONDER:       str = os_join(RESPONDER_DIR, RESPONDER_PROG)       

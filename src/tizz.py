@@ -7,7 +7,7 @@ from contacts import Contacts
 from message import Message
 
 from constants import PROG_NAME
-PROG_NAME = PROG_NAME.split('.')[0]
+#PROG_NAME = PROG_NAME.split('.')[0]
 
 from utility import (
         backup_databases, 
