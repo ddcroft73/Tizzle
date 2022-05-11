@@ -2,11 +2,13 @@
 # Quick Start
 
 ## To use Tizzle you need to first do a few things:
-- Make sure you have admin rights on the computer you are using.
-- Make sure Windows Task Scheduler is running.
+- Install python 3.10+ if you dont already have it installed. More information [Here](https://www.python.org/downloads/).
+- Make sure you have admin rights on the computer you are using. If you are the sole user then you're probably already Administrator.
+- Make sure Windows Task Scheduler is running. [How to check](https://www.minitool.com/news/fix-task-scheduler-not-running-windows-10.html).
 - Enter the settings information into the settings.json file.
 - Have an email address that you can log into and use from a 3rd party aspect. Google 3rd party app help [here](https://support.google.com/accounts/answer/185833?hl=en).
-- Install [tabulate](https://pypi.org/project/tabulate/) 
+- Install [tabulate](https://pypi.org/project/tabulate/).
+- Make sure you are set up for 3rd party access to a [Gmail](www.gmail.com) account. I recommend you set up an account specifically for this. Gmail  is changing their policy on May 30th and I am currently working on a workaround in case tis directly effects the use of this application. 
 ___
 ### Install tabulate:
 ```
@@ -28,7 +30,7 @@ The bottom credentials are used when you want to modify a message Task in place.
 
 ### To get help at the command line:
  ```
- $ python tizz -h
+ :\>python tizz -h
  ```
  
 Before you can use the application you need to set up the environment, that is add some contacts. sText will not send a text to anyone that is not a contact, or apart of a contact GROUP.  Once you have at least one contact setup you can start to schedule or send texts to this person.
@@ -37,30 +39,30 @@ Before you can use the application you need to set up the environment, that is a
 
  ### To create a contact:
 ```
-$ python tizz add_contact <contact_name> <phone_number> <provider> -g <GROUP>
+:\>python tizz add_contact <contact_name> <phone_number> <provider> -g <GROUP>
 ```
 Only certain providers are supported (most of the common ones) and All info will be validated. You can access a free provider lookup site that can be launched from the terminal. And help is issued for provider trouble. The group should be avoided until you have more than 2 contacts and would like to add new contacts to an existing group on contact creation.
 ### Provider Lookup:
 ```
-$ python tizz lookup
+:\>python tizz.py lookup
 ```
 ### Set the default contact:
 ```
-$ python tizz set_def_contact <contact_name>
+:\>python tizz.py set_def_contact <contact_name>
 ```
-The first contact wi;; always be the default. 
+The first contact will always be the default. 
 
 <br>
 
  ## Schedule your first text:
  ### 
  ```
- $ python tizz new_msg "Message" <send_time> 
+ :\>python tizz.py new_msg "Message" <send_time> 
  ```
  This will send a text to the default contact at the time specified. Of course you can get a lot more specific than this, Thats just the way I set it up so i could send myself fast reminders.
  ### Send a message at 3:00pm to a contact named John Smith on 04/16/2021:
  ```
- $ python tizz new_msg "Message" 15:00 -dest "John Smith" -dt 1 -sd 04/16/2021
+ :\>python tizz.py new_msg "Message" 15:00 -dest "John Smith" -dt 1 -sd 04/16/2021
  ```
 
 You can get a LOT more specific but these are just a couple of the ways the application can be used to remind yourself and the people in your circle about the things you don't want to forget. For more detailed help use the on board help.

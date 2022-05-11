@@ -35,6 +35,8 @@ I plan to find a work around for this if necessary and will likely implement Oau
 
 ## ## TODO:
 - Add support for oauth authentication (Adapt to Gmails new policy)
+- Build in a simple SMTP mail server to send texts from computer without need for Email account. Not sure about the security of this. Just an idea.
+  - Will still need an account to receive emails to use the Responder application.
 - Add a GUI wrapper.
 - Full documentation.
 - Add support to schedule tasks on remote machines. 
@@ -48,19 +50,19 @@ I plan to find a work around for this if necessary and will likely implement Oau
 
 
 ## Troubleshooting:
-The only real problem I've see with this application is the inability to get the Task scheduler to execute the task. It works flawlessly on my desktop but for some ungodly reason WTS will not launch any task whatsoever on my laptop. I don't get it. When you check the task history it is clearly not executing the tasks, and if you have this problem, IDK what to tell you. I can't get cron to work on my laptop either through WSL2 or through a dual boot Ubuntu distro. But If you are having problems a few steps you can take are:
+The only real problem I've see with this application is the inability to get the Task scheduler to execute the task. It works flawlessly on my desktop but for some ungodly reason WTS will not launch any task whatsoever on my laptop. The tasks are scheduled as they should be and can be `modified`, `disabled`, etc. and they will `run` manually. But it will not execute any at all. When you check the task history it is clearly not executing the tasks, and if you have this problem, IDK what to tell you. If you are having problems a few steps you can take are:
 
  - Open cmd Prompt with elevated privileges and run:
-  ```
-  $ sfc /scannow <ENTER>
-  ````
+ ```
+ :\>sfc /scannow <ENTER>
+ ```
  - Open cmd prompt with elevated privileges and run:
  ```
- $ net start task scheduler <ENTER>
+ :\>net start task scheduler <ENTER>
  ```
  - Once again at the cmd prompt:
  ```
- $ SC config schedule start=auto <ENTER>
+ :\>SC config schedule start=auto <ENTER>
  ```
  
 
