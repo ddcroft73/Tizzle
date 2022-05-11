@@ -80,6 +80,6 @@ I plan to find a work around for this if necessary and will likely implement Oau
 <br>
 <br>
 ## Disclaimer:
-As I'm sure you have realized this application could be used in nefarious ways. I do not intend for you to use this to annoy the hell out of your friends or badger your enemies. It is nothing more than a convenient way to remind yourself, and maybe some other people in your life about important events. If Anyone has any good ideas of how to implement any anti-spam measures please submit a pull request and do so. I am not totally done with sText but I ave other pressing issues, that I need to attend to and I've spent a too much time on it already.
+As I'm sure you have realized this application could be used in nefarious ways. I do not intend for you to use this to annoy the hell out of your friends or badger your enemies. It is nothing more than a convenient way to remind yourself, and maybe some other people in your life about important events. 
 
 { [email](gen.disarray@outlook.com) - [/uHobblingCobbler](https://www.reddit.com/user/HobblingCobbler/) }
