@@ -373,11 +373,13 @@ def get_parser():
                             '       Once every [5,10,15,20] minutes for up to 00:60 minutes.\n'
                             '       And the intervals have been crippled.'
                            ' Example:\n'
-                            '       Once every 5 for ut to 15.\n'
-                            '       Once every 10 for up to 30.\n'
-                            '       Once every 20 for up to 60.\n'
-                            '       You can only itereate the message 3 times.\n\n'
-                            f' {BLUET}NOT INTENDED TO SPAM SOME POOR SOB EVERY MINUTE FOR THE REST OF THEIR LIVES{ENDC}!\n\n'
+                            '       Once every 5 for up to 00:60.\n'
+                            '       Once every 10 for up to 00:60.\n'
+                            '       Once every 20 for up to 00:60.\n'
+                            "       You can't itereate any message > 6 times.\n\n"
+                            f' {BLUET}NOT INTENDED TO SPAM SOME POOR SOB EVERY MINUTE FOR THE REST OF THEIR LIVES{ENDC}!\n'
+                             ' These time increments and max time limit will give you more than you need to\n'
+                             ' get the2point across. Messages can also be cancelled by the user via text reply.\n\n'
                            
                             f' Send a message to a GROUP, today:\n'
                             f'  {GRNT}{PROG_NAME}{ENDC} {TURT}new_msg{ENDC} {VIT}"Message" 15:00{ENDC} {YELLIT}-dest{ENDC} {BLUET}"group name"{ENDC}'
