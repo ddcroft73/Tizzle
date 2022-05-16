@@ -372,14 +372,19 @@ def display_message_changes(
 def get_new_status(_arg_d: dict, _msg: list[str]) -> str:
     new_status: str = "Ready(m)"
 
-    if (
-        _arg_d['_start_time'] == None and 
-        _arg_d['_duration'] == None and 
-        _arg_d['_end_date'] == None and 
-        _arg_d['_date_to_text'] == None 
+    if (_arg_d['_start_time'] is not None or         
+        _arg_d['_duration'] is not None or 
+        _arg_d['_end_date'] is not None or 
+        _arg_d['_date_to_text'] is not None
        ):
-        new_status = "Modified" # must have modified the message or the destination
+        new_status = "Modified" 
+
+    if _arg_d['_destination'] is not None:
+        new_status = "Modified" 
     
+    if _arg_d['_msg'] is not None:
+        new_status = "Modified"     
+
     if _msg[STATUS] == 'Started': 
         new_status = "Started(m)"
         

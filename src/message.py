@@ -59,14 +59,24 @@ from mod_message import(
 
 # TODO
 # Add support for login pword  for use on machines without admin rights..
-# Create a GUI wrapper that will viusally accept the options and call this program.
+# Create a GUI wrapper that will visually accept the options and call this program.
+# add Oauth support to handle the changes put forth by Gmail
+# Maybe look into a small SMTP server to send the texts from your computer. Not sure about security 
+# issues. Will still need IMAP support to use the Responder.
 
-#REWRITE THIS ENTIRE APPLICATION USING OOD...  ONE OF the main problems, besides the structure
-# Is the fact that it is constantly accesing the .json messsage db file. Need to step it up and
+#  ONE OF the main issues, besides the some of the structure
+# Is the fact that it is constantly accesing the .json database files. Need to step it up and
 # Use a more traditional DB or rethink the data access. It does keep the data honest and accessing 
 # a text file is relatively inexpensive, but I still think I should have thought that out better.
+# I didn't honestly think I was going to find this application as useful as I did. Use it almost daily.
 # The application works really well. It does what it professes, but I really want an efficient structure
-# that is well thought out.
+# that is better thought out. It got away from me... but not too bad. 
+# App started to be OOP, But I quickly found out I was not prepared and I just left THe classes message,
+# contacts groups and USed it primarily as a way to order the methods\Might as well be functions. I call
+# a lot of helper functions to do the work so this is a really unorthadox structure I know. THe Responder 
+# is a better attempt at OOP BUt being as this application works really well (For me, Hope if others use 
+# it it will as well) I ONly plan On DIgging the methods out and making the program 100% procedural since 
+# thats pretty much whats going on here.
 
 class Message:
     """ class Message -  Used only for namespace """
@@ -108,7 +118,7 @@ class Message:
         bat_command: str
         contacts_info: list[list[str]] = load_data(CONTACTS_DB)             
         
-        # Support the use of dates without the year. 
+        # Support the use of short dates no year required. 
         _date_to_text, _end_date = eval_date(_date_to_text, _end_date)
        
         # set defaults
@@ -151,8 +161,8 @@ class Message:
             if (valid_schedule_time(_time_to_text, _date_to_text)):  
 
                 unique_msg_id: str = get_unique_id()            
-                # if this is a group mesage add the message ID to the contacts ID list
-                if(_dest_type == 2):
+                # if this is a group message add the message ID to the contacts ID list
+                if(_dest_type == GROUP):
                     self.__add_msgid_to_contacts_list(unique_msg_id, _destination)    
                 
                 # create the bat file path and command only so that 
@@ -219,9 +229,9 @@ class Message:
             All the Cases of the destination will be sorted out by the time it reaches here.
         """
         _destination: str = args.destination        
-        _msg:         str = args.message#.replace(":", "") # colons seem to mess up the texts? IDEKW 86 em' for now.
-                                                          # The texts come out blank. Have narrowed it down to this.
-        _msg_id: str|None = args.msg_id.upper() if args.msg_id is not None else None                 # Only used by the ID when sending group texts
+        _msg:         str = args.message#.replace(":", "")   # colons seem to mess up the texts? IDEKW If you are receiving blank messages
+                                                             # uncomment the replace method and it should stop. Would love tho know why.
+        _msg_id: str|None = args.msg_id.upper() if args.msg_id is not None else None   # Only used by the ID when sending group texts
 
         settings: dict[str,str|int] = load_data(SETTINGS_FILE)
         contacts: list[list[str]] = load_data(CONTACTS_DB)  
@@ -265,7 +275,11 @@ class Message:
 # Enable Tasks
     def enable_task(self, args: object) -> None:
         """will enable a task asociated with a message"""
-        _msg_id: str = args.msg_id.upper()
+        
+        try:
+           _msg_id: str = args.msg_id.upper()
+        except:
+           _msg_id = args.upper()         
         
         if (_msg_id in get_scheduled_tasks()):
             res: str = self.__get_status(_msg_id)
@@ -325,16 +339,16 @@ class Message:
     def modify(self, args: object) -> None:
         """ 
         Modifies an existing message in place.  
-        A live message may be modified in any way expcept changing the messsage ID.
-        Or the frequency of how it is sent.
+        Any message may be modified several ways. startdate, enddate, endtime,
+        message, or desination. Cannot modify the frequency of how it is sent.
         Useful for correcting mistakes, or to revive a deceased message task.
         """         
         messages: list[list[str]]  = load_data(DB)
         validated:            bool = True
         edit_batch:           bool = False
-        arg_d:  dict[str, str|int] = {}    # dictionary that will organize all the args
+        arg_d:  dict[str, str|int] = {}       # dictionary that will organize all the args
         command:     list[str|int]            # the argument list to send to schtasks.exe
-        _msg_id:               str = args.msg_id.upper() # because Ids are saved as upper case
+        _msg_id:               str = args.msg_id.upper() 
         start_date:            str
         end_date:              str
 
@@ -343,6 +357,9 @@ class Message:
         
         if (not search_ID(_msg_id)): return
 
+        # If the message is disabled, check to enable it first.
+        if (self.__check_enable(_msg_id)): return
+        
         # Evaluate all the mods the user requested and create a command to make
         # the changes. Decide if it is needed to edit the batch file or not
         # and validate any necessary arguments
@@ -398,9 +415,9 @@ class Message:
                 print(f'\n"{BLUET}{_msg_id}{ENDC}" succesfully modified.')    
 #-------------------------------------------------------------------------------------------------------------------------------------------   
     def delete(self, args: object) -> None:
+
         """ Handles the choices for deletion of items in database json, scheduler, batch files. """
-        # REWRITE THIS TO USE A MORE TRADITIONAL MENU SYSTEM WITH A LOOP OR JUST WAIT
-        # AND MAKE IT A CLASS.
+        # REWRITE THIS TO USE A MORE TRADITIONAL MENU SYSTEM WITH A LOOP, hell, it works fine. 
 
         #Convert the ID\s into a list to be processed,
         # even if a single item. This allows me to Delete one, or more instead
@@ -427,9 +444,13 @@ class Message:
         match choice: 
             case "1":
                 self.__delete_from_database(_msg_id)      
+                # eidt any group list entries.
+                self.__edit_group_members_lists(_msg_id)
             case "2":
                 self.__delete_from_database(_msg_id)                
                 self.__delete_from_task_scheduler(_msg_id)
+                # eidt any group list entries.
+                self.__edit_group_members_lists(_msg_id)
             case "3":
                 if _msg_id[0] == 'ALL': self.__delete_executed_messages()
                 else: print('Good-Bye')    
@@ -556,6 +577,20 @@ class Message:
 # PRIVATE METHODS 
 #=================================================================================================================================
 
+#-------------------------------------------------------------------------------------------------------------------------------------------
+    def __check_enable(self, _msg_id: str) -> bool:
+        '''
+        Message may be disabled. Check the DB to see, and if it is promptbefore enabling.
+        '''
+        status: str = get_message_from_disk(_msg_id)[STATUS]
+        if status == 'Disabled':
+            if warn_or_continue(
+                f'\n{YELLT}MESSAGE{ENDC}: "{BLUET}{_msg_id}{ENDC}" is {YELLT}Disabled{ENDC}. \nEnable it before modification?'
+                '',
+                warn=False
+            ):
+                self.enable_task(_msg_id)
+                
 #-------------------------------------------------------------------------------------------------------------------------------------------
     def __is_group_message(self, _msg_id: str) -> bool:
         '''
@@ -724,8 +759,7 @@ class Message:
         for contact in contacts_info:
             if contact[GROUP_NAME] == destination.upper():
                 contact[MSG_LIST].append(_msg_id)
-
-        write_data(contacts_info, CONTACTS_DB)        
+                write_data(contacts_info, CONTACTS_DB)        
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------
@@ -797,7 +831,8 @@ class Message:
         message_gateway: str = "mms"
 
         # replace "break instruction" with '\n' so there is an actual line break after the message
-        # and distinguish it from the stop message.
+        # and distinguish it from the stop message. CANNOT  use inline breaks in abatch file, this 
+        # Does the trick.
         message_ = message_.replace(LINE_BREAK, '\n')
         
         # decide if this provider supports mms, or if the mms and sms are
@@ -894,7 +929,7 @@ class Message:
                       
                 # ended?
                 if (not valid_schedule_time(end_time, end_date, output=False) and msg[STATUS] != 'Disabled'): 
-                     if msg[STATUS] in ["Started", 'Started(m)', 'Rewind'] :
+                     if msg[STATUS] in ["Started", 'Started(m)', 'Rewind', 'Modified'] :
                         msg[STATUS] = "Expired"
 
                      if msg[FREQUENCY] in ['DAILY', "WEEKLY", 'MONTHLY']:
@@ -923,7 +958,7 @@ class Message:
 #------------------------------------------------------------------------------------------------------------------------------------------- 
         
 ##===================================================================================================
-# new HELPER MEthods  
+# new_msg HELPER MEthods  
 ##===================================================================================================
 
     def __add_msg_database(self,  
@@ -1009,11 +1044,14 @@ class Message:
 
         #Extend the command list according to options. 
         if (_duration):
-            # should i allow user to pick up after stopping on onw day?
-            # /K will let it start up again on another day '/K
+            # should i allow user to pick up after stopping on one day?
+            # /K will let it start up again on another day after it stopped the previous day'/K
             # only allow the user to extend the frequency for 3 days...
             # check to make sure -ed is not more than 3 days in the future
             # Need to code the days tester and then apply it here.
+            # Nope.. this is likely just too much
+
+            # business as usual
             extension = ['/DU', _duration]
             command.extend(extension)                    
 
@@ -1046,7 +1084,7 @@ class Message:
     def __set_WakeToRun(self, task_name: str) -> None:
         """
         generates and runs a powershell script to set the WakeToRun Setting to true. Cannot access this
-        setting using schtasks.exe, and accesing These 2 PS functions was problematic. So just run a script instead.
+        setting using schtasks.exe, and accesing These 2 PS functions was problematic. So I just run a script instead.
         I know there is a way to pass the data from a variable once set by the first cmdlet to the call to the next.
         But I get PS errors saying that $settings is null, so this works well enough.
         """
@@ -1119,7 +1157,7 @@ class Message:
             end_time: str = calculate_end_time(_date_to_text, _time_to_text, _duration)
             end_time_date = end_time + '\n' + _date_to_text  """
             
-        # end on endDate only, to 12:00
+        # end on endDate only, to 00:00
         # This does not need to be displaed since the scheduler will default to 00:00
         # Im just doing this to have a time placeholder for terminal viewing
         if _frequency != "once" and _end_date is not None:
@@ -1133,11 +1171,6 @@ class Message:
              end_time: str = calculate_end_time(_date_to_text, _time_to_text, _duration)
              end_time_date = end_time + '\n' + _date_to_text
 
-        # End On end date at stop time
-        """if _frequency != "once" and _end_date is not None and _duration is not None:
-            end_time: str = calculate_end_time(_date_to_text, _time_to_text, _duration)
-            end_time_date = end_time + '\n' + _end_date
-"""
         return end_time_date
 #-------------------------------------------------------------------------------------------------------------------------------------------
     def __validate_and_format_destination(self, 
@@ -1170,7 +1203,7 @@ class Message:
 
         return _destination
 ##===================================================================================================
-# END  new HELPER MEthods  
+# END  new_msg HELPER MEthods  
 ##===================================================================================================
 
 
@@ -1194,8 +1227,6 @@ class Message:
     def __delete_from_database(self, _msg_ids: list[str]) -> None:
         """
         Deletes messages from the json database only
-
-        USE THIS SAME STRUCTURE TO FIX THE view method of the contacts Class.
         """
         messages:  list[list[str]] = load_data(DB)
 
@@ -1275,7 +1306,7 @@ class Message:
                 pronoun: str = "it's" if pronoun2 != 'their ' else 'all' 
                 print(f"\nDELETED: {BLUET}{', '.join(deleted)}{ENDC} and {pronoun} {pronoun2}associated batch file{s} from {BLUET}Task Scheduler{ENDC}.")    
             else:
-                # rather than displaying each id for all ids, just display 'ALL'.
+                # rather than displaying each id for all ids, just display 'ALL', common sense approach.
                 print(f"\nDELETED: {BLUET}ALL{ENDC} tasks and ALL associated batch files from {BLUET}Task Scheduler{ENDC}.")  
 
         if (not_found_list):

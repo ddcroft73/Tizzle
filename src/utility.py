@@ -644,7 +644,10 @@ def validate_duration(
          Max Hours that may be used: 6
          Max Minutes: 1 every 5, 10 or 15 minutes
          if hourly mod == 1 1 every hour up to 6 hours
-         if  minutes mod == [5,10,15], duration == [10|15, 10|30. 15|45]
+         if  minutes mod == [5,10,15], duration == [10|15, 20|30. 30|45]
+
+         NEW duration Rules?
+         
 
          A mesage after being stopped on the curent day, nay be started again for up to 3 
          more days.
@@ -657,7 +660,7 @@ def validate_duration(
     
     #Must be a time format
     if not valid_time_format(_duration):
-        print(f'{YELLT}-du{ENDC}|{YELLT}--duration{ENDC} must be formatted using the time {BLUET}HH:00{ENDC} format.')
+        print(f'{YELLT}-du{ENDC}|{YELLT}--duration{ENDC} must be formatted using the time {BLUET}00:MM{ENDC} format.')
         res = False 
  
     try:
@@ -680,8 +683,8 @@ def validate_duration(
             if (int(duration_multi) < int(_mod)):
                 print(f"\n{BLUET}Duration {YELLT}Can't be less than the modifier{ENDC}.")    
                 res = False
-            if (int(duration_multi) > 6):
-                print(f"\n{BLUET}Duration {YELLT}Can't go over X 6{ENDC}.")
+            if (int(duration_multi) > 12):
+                print(f"\n{BLUET}Duration {YELLT}Can't go over X 12{ENDC}.")
                 res = False
             # must be divisible by the mod
             if (int(duration_multi) % int(_mod) != 0):
@@ -692,18 +695,20 @@ def validate_duration(
             duration_multi = _duration.split(':')[1]
             # duration must be 2 or 3 x mod
             if _mod not in min_mod_only:
-                print(f'\n{YELLT}-mo{ENDC}|{YELLT}--modifier{ENDC} for {BLUET}MINUTE{ENDC} can only be [5, 10, 15, 20].')
+                print(f'\n{YELLT}-mo{ENDC}|{YELLT}--modifier{ENDC} for {BLUET}MINUTE{ENDC} can only be every [5, 10, 15, 20] minutes.')
                 res = False
             # cant go over 60 mins    
             if (int(duration_multi) > 60):
-                print(f"\n{BLUET}Duration {YELLT}Can't go over X 3{ENDC}.")
+                print(f"\n{BLUET}Duration {YELLT}Can't go over 00:60{ENDC}.") # X6
                 res =  False
-
-            if (
+            if ( # aything up to 6 
                 int(duration_multi) != int(_mod)*2 and 
-                int(duration_multi) != int(_mod)*3
+                int(duration_multi) != int(_mod)*3 and
+                int(duration_multi) != int(_mod)*4 and
+                int(duration_multi) != int(_mod)*5 and
+                int(duration_multi) != int(_mod)*6 
                ):
-                print(f'{YELLT}\nDuration must be either 2 or 3 X modifier only. Max 45 minutes total{ENDC}.\n'
+                print(f'{YELLT}\nDuration is max 00:60 minutes, in even multipliers of the modifer.{ENDC}.\n'
                       f'Your duration is {BLUET}{_duration}{ENDC} minutes.\n'
                       f'Your modifier is every {BLUET}{_mod}{ENDC} minutes.')
                 res = False
@@ -716,7 +721,7 @@ def validate_duration(
         res = False
 
     return res
-
+#print(validate_duration('00:60', 'minute', '20'))
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def calculate_end_time(_start_date: str, _start_time: str, _duration: str) -> str:
     ''' 
@@ -951,8 +956,8 @@ def print_report(
     if _dest_type ==  GROUP: _dest_type = "GROUP"
 
     add_on: str =""
-    report: str = f'\nThe message "{YELLIT}{_id}{ENDC}" will be sent on \
-{YELLT}{_sd}{ENDC} to {YELLT}{_dest_type}{ENDC} "{BLUET}{_destination}{ENDC}" at {GRNT}{_st}{ENDC}.\n'
+    report: str = (f'\nThe message "{YELLIT}{_id}{ENDC}" will be sent on {YELLT}{_sd}{ENDC} '
+                   f'to {YELLT}{_dest_type}{ENDC} "{BLUET}{_destination}{ENDC}" at {GRNT}{_st}{ENDC}.\n')
 
     if 'EVERY'  in _frequency or 'hourly' in _frequency:
         if _et is not None:
