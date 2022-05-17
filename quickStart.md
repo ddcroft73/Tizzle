@@ -8,11 +8,17 @@
 - Enter the settings information into the settings.json file.
 - Have an email address that you can log into and use from a 3rd party aspect. Google 3rd party app help [here](https://support.google.com/accounts/answer/185833?hl=en).
 - Install [tabulate](https://pypi.org/project/tabulate/).
+- Install [html2text](https://github.com/Alir3z4/html2text/).
 - Make sure you are set up for 3rd party access to a [Gmail](www.gmail.com) account. I recommend you set up an account specifically for this. Gmail  is changing their policy on May 30th and I am currently working on a workaround in case tis directly effects the use of this application. 
 ___
 ### Install tabulate:
 ```
-$ python pip install tabulate
+:\>python pip install tabulate
+```
+
+### Install Html2Text:
+```
+:\>python pip install html2text
 ```
 
 ### Edit settings.json

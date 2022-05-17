@@ -13,7 +13,6 @@ I was never going to put this application out there but it's literally so conven
 - Anti-Spam measures to stop abuse.
 - Designate yourself as the default contact to take advantage of fast CLI commands.
 - Make modifications to current, passed, or future messages, in place.
-- Only one small 3rd party app.
 - Complete maintenance of all databases. Backup, rebuild, restore.
 - Failsafe task recovery in case they get deleted or become corrupted.
 - Thorough command line help color coded with examples.
@@ -27,6 +26,7 @@ I was never going to put this application out there but it's literally so conven
  - Python 3.10
  - Windows 10+
  - tabulate
+ - html2text
 
 ## Upcoming changes:
 On May 30th 
