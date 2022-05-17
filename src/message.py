@@ -7,7 +7,7 @@ from smtplib import SMTP_SSL
 from ssl import create_default_context
 from subprocess import run, Popen, DEVNULL, PIPE
 from time import sleep
-from os import remove as os_remove    
+from os import remove as os_remove, startfile   
 from os.path import exists as os_exists
 from sys import executable 
 from  threading import Thread
@@ -64,7 +64,11 @@ from mod_message import(
 # Maybe look into a small SMTP server to send the texts from your computer. Not sure about security 
 # issues. Will still need IMAP support to use the Responder.
 
-#  ONE OF the main issues, besides the some of the structure
+# About this structure: I only used a message class so that I could arrange the methods how i wnated
+# as opposed to having to put all functions above the calling code as with functions. THere are a lot
+# of calls to outside functions and tbh It just got so out of hand I dont care to go in and clean out the 
+# class and make it all functions. 
+# ONE OF the main issues, besides the some of the structure
 # Is the fact that it is constantly accesing the .json database files. Need to step it up and
 # Use a more traditional DB or rethink the data access. It does keep the data honest and accessing 
 # a text file is relatively inexpensive, but I still think I should have thought that out better.
@@ -79,7 +83,7 @@ from mod_message import(
 # thats pretty much whats going on here.
 
 class Message:
-    """ class Message -  Used only for namespace """
+    """ class Message"""
 
     def __init__(self):
         if os_exists(DB):            
@@ -430,7 +434,7 @@ class Message:
         # only show option 3, and 4 if "all" was entered. 
         # Option 3 is only really viable if an ALL action is eneterd so 
         # Adjust the menu and match case accordingly.
-        print(f'\n{BLUET}How do you want to proceed for{ENDC} "{" ,".join(_msg_id)}"?')
+        print(f'\n{BLUET}How do you want to proceed for{ENDC} "{", ".join(_msg_id)}"?')
         print(f'\n{BLUET}1{ENDC}. Delete only from database.')
         print(f'{BLUET}2{ENDC}. Delete from database and from scheduler.')
         if _msg_id[0] =='ALL':
@@ -545,7 +549,7 @@ class Message:
 #-------------------------------------------------------------------------------------------------------------------------------------------
     def control_responder(self, args: object) -> None:
         '''
-        Launcehs the sister application that monitors emails to be stopped
+        Launches the sister application that monitors emails to be stopped
         Or sends a command to kill the process
         '''
         command: str = [executable, RESPONDER]
@@ -553,23 +557,16 @@ class Message:
         def run_responder():
             # Kind of uncharted territory for me but this seems to work.
             # Have to assume its a running and just say it is.
-            print(f"\n{BLUET}Responder launched{ENDC}.")
-            run(command).returncode              
+            print(f"\n{BLUET}Responder launched... Do not close the command prompt until you wish to stop the application.{ENDC}.\n"
+                   'You can continue using this terminal as usual.')
+            startfile(RESPONDER)            
 
         if args.stop :
             self.__stop_responder(RESPONDER_LOG, args.debug)
 
         if args.start:
-            if warn_or_continue(
-                  f'{YELLIT}This feature is being developed{ENDC}.\n\n'
-                  'Currently it will allow you to launch the responder and get the\n'
-                  'terminal back once. After that, it errors out. It is likely best\n'
-                  'to launch from a seperate console. The "Stop" feature works fine\n'
-                  "and can be terminated from the same window. \n\n"
-                  f'It will work really nicely the first time. \n'
-                ):
-                x = Thread(target=run_responder, daemon=True)
-                x.start()
+            run_responder()
+            
 
 
 
