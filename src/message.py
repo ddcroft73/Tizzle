@@ -289,7 +289,7 @@ class Message:
         if (_msg_id in get_scheduled_tasks()):
             res: str = self.__get_status(_msg_id)
             
-            if (res in ["Recurring", "Started", "Ready", "Started(m)", "Ready(m)", "Modified"]):
+            if (res in ["Recurring", "Started", "Ready", "Started(m)", "Ready(m)", "Modified", "Rewind"]):
                 command: str = ["schtasks.exe", "/CHANGE",  "/TN", _msg_id, "/DISABLE"]
 
                 return_code: int = run(command).returncode  
@@ -528,7 +528,7 @@ class Message:
         Launches the sister application that monitors emails to be stopped
         Or sends a command to kill the process
         '''
-        command: str = [executable, RESPONDER]
+        #command: str = [executable, RESPONDER]
 
         def run_responder():
             # Kind of uncharted territory for me but this seems to work.
@@ -538,7 +538,7 @@ class Message:
             startfile(RESPONDER)            
 
         if args.stop :
-            self.__stop_responder(RESPONDER_LOG, args.debug)
+            self.__stop_responder(RESPONDER_LOG, args.pid_, args.debug)
 
         if args.start:
             run_responder()
@@ -583,11 +583,17 @@ class Message:
         return False
         
 #-------------------------------------------------------------------------------------------------------------------------------------------
-    def __stop_responder(self, log_: str, debug=False) -> None:
+    def __stop_responder(self, log_: str, _pid: int=0, debug=False) -> None:
         '''
-        Stops the responder by killing the process.
+        Stops the responder by killing the process. User can pass in a custom PID obtained from the log
+        If for some reason a rogue is a running. Will make the Responder a singleton to stop the possibilty
         '''
-        pid: str = self.__extract_pid(log_)
+        
+        if not _pid:
+            pid: str = int(self.__extract_pid(log_))
+        else:
+            pid = _pid    
+        
         if pid:
            if not debug:  
                 Popen(f'taskkill /F /PID {pid}', shell=False, stdout=PIPE, stderr=DEVNULL)
@@ -882,35 +888,36 @@ class Message:
                     end_date: str = msg[END_DATE].split("\n")[1]  
 
                 # started?   
-                if (not valid_schedule_time(start_time, start_date, output=False)):  
-                    # if its not ONCE it has started.
+                if msg[STATUS] != 'Disabled':
+                    if (not valid_schedule_time(start_time, start_date, output=False)):  
+                        # if its not ONCE it has started.
 
-                    if (msg[FREQUENCY] == 'ONCE'):
-                        msg[STATUS] = "Sent"    
-                    else:
-                        # was this a modified message?
-                        if msg[STATUS] == "Started(m)":
-                            msg[STATUS] = "Started(m)"
-                        else:    
-                            msg[STATUS] = "Started"
+                        if (msg[FREQUENCY] == 'ONCE'):
+                            msg[STATUS] = "Sent"    
+                        else:
+                            # was this a modified message?
+                            if msg[STATUS] == "Started(m)":
+                                msg[STATUS] = "Started(m)"
+                            else:    
+                                msg[STATUS] = "Started"
 
-                    if(
-                        'EVERY' in msg[FREQUENCY] or 
-                        'HOUR'  in msg[FREQUENCY]   
-                      ):   
-                        msg[STATUS] = "Started"     
-                      
-                # ended?
-                if (not valid_schedule_time(end_time, end_date, output=False) and msg[STATUS] != 'Disabled'): 
-                     if msg[STATUS] in ["Started", 'Started(m)', 'Rewind', 'Modified'] :
-                        msg[STATUS] = "Expired"
+                        if(
+                            'EVERY' in msg[FREQUENCY] or 
+                            'HOUR'  in msg[FREQUENCY]   
+                        ):   
+                            msg[STATUS] = "Started"     
+                        
+                    # ended?
+                    if (not valid_schedule_time(end_time, end_date, output=False)): 
+                        if msg[STATUS] in ["Started", 'Started(m)', 'Rewind', 'Modified'] :
+                            msg[STATUS] = "Expired"
 
-                     if msg[FREQUENCY] in ['DAILY', "WEEKLY", 'MONTHLY']:
-                         msg[STATUS] == 'Expired'
-                     
-                     # If this message is associated with  group and it has expired, 
-                     # remove it from all members lists
-                     self.__edit_group_members_lists(msg[ID])
+                        if msg[FREQUENCY] in ['DAILY', "WEEKLY", 'MONTHLY']:
+                            msg[STATUS] == 'Expired'
+                        
+                        # If this message is associated with  group and it has expired, 
+                        # remove it from all members lists
+                        self.__edit_group_members_lists(msg[ID])
 
             write_data(messages,DB)
 

@@ -788,10 +788,11 @@ def get_parser():
     parser_new = subparsers.add_parser(
             'responder',  
             help='R|Launches or kills the responder. \n\n'
-                 f'{GRYT}python{ENDC} {GRNT}{PROG_NAME}{ENDC} {TURT}responder{ENDC} [{YELLT}-start{ENDC}|{YELLT}-stop{ENDC}]\n'
+                 f'{GRYT}python{ENDC} {GRNT}{PROG_NAME}{ENDC} {TURT}responder{ENDC} [{YELLT}--start{ENDC}|{YELLT}--stop{ENDC}] [{YELLT}--debug{ENDC}] [{YELLT}--pid{ENDC}] <{BLUET}PID{ENDC}>\n'
                   'Launches or kills the responder to listen for Email reponses. Responder is a \n'
                   'Standalone application that will disable any messages that are recurring when it\n'
-                  'receives a stop message via Email.\n\n'
+                  'receives a stop message via Email. It can be cotrolled remotely via text message\n'
+                  'replies. (status, stop msg_id, restart, shutdown)\n\n'
                   ,
              description=f'{YELLIT}Launches\kills the responder{ENDC}.', formatter_class=SmartFormatter)
 
@@ -810,6 +811,11 @@ def get_parser():
             required=False, dest="debug", 
             help=f"R|{YELLIT}Debug mode: allows you to get more info from the stop process.{ENDC}.\n\n"
     )
+    parser_new.add_argument(
+            '-p', '--pid',
+            required=False, dest="pid_", type=int, default=0,
+            help=f"R|{YELLIT}Incase a rogue gets away{ENDC}. 'Really need a singleton' However. \nGet the PID from the log and execute a kill manually.\n\n"
+    )
     parser_new.set_defaults(func=msg.control_responder)
 
     return parser
@@ -817,15 +823,15 @@ def get_parser():
 
 
 def main(args: list[str]=None) -> None:
-    #try:
+    try:
         if args is None:
                 args = get_parser().parse_args()
                 args.func(args) 
 
-        """except AttributeError as er:
+    except AttributeError as er:
             print(er)
             print('This program must be ran with arguments from the command line.'
-                  '\nUsage: stext [-h] for help') """     
+                  '\nUsage: stext [-h] for help')      
     
     
 if __name__ == "__main__":
