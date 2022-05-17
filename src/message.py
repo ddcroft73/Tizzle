@@ -10,7 +10,6 @@ from time import sleep
 from os import remove as os_remove, startfile   
 from os.path import exists as os_exists
 from sys import executable 
-from  threading import Thread
 
 # data\utility functions:
 from utility import (
@@ -64,26 +63,14 @@ from mod_message import(
 # Maybe look into a small SMTP server to send the texts from your computer. Not sure about security 
 # issues. Will still need IMAP support to use the Responder.
 
-# About this structure: I only used a message class so that I could arrange the methods how i wnated
-# as opposed to having to put all functions above the calling code as with functions. THere are a lot
-# of calls to outside functions and tbh It just got so out of hand I dont care to go in and clean out the 
-# class and make it all functions. 
-# ONE OF the main issues, besides the some of the structure
-# Is the fact that it is constantly accesing the .json database files. Need to step it up and
-# Use a more traditional DB or rethink the data access. It does keep the data honest and accessing 
-# a text file is relatively inexpensive, but I still think I should have thought that out better.
-# I didn't honestly think I was going to find this application as useful as I did. Use it almost daily.
-# The application works really well. It does what it professes, but I really want an efficient structure
-# that is better thought out. It got away from me... but not too bad. 
-# App started to be OOP, But I quickly found out I was not prepared and I just left THe classes message,
-# contacts groups and USed it primarily as a way to order the methods\Might as well be functions. I call
-# a lot of helper functions to do the work so this is a really unorthadox structure I know. THe Responder 
-# is a better attempt at OOP BUt being as this application works really well (For me, Hope if others use 
-# it it will as well) I ONly plan On DIgging the methods out and making the program 100% procedural since 
-# thats pretty much whats going on here.
+# Dont laugh at this structure. ts not OOP. THe application works really well and I'm sure there are
+# a few things, simple things I overlooked because I wrote it by the seat of my pants, but it is hella
+# useful for sending and scheduling reminders for yourself and anyone eles in just about any way you can think.
+# Plus Its got a sister app that lets you control it from text messages. Shutdown, restart, stop recurring 
+# messages, etc. 
 
 class Message:
-    """ class Message"""
+    
 
     def __init__(self):
         if os_exists(DB):            
