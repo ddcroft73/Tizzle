@@ -26,7 +26,6 @@ I was never going to put this application out there but it's literally so conven
  - Python 3.10
  - Windows 10+
  - tabulate
- - html2text
 
 ## Upcoming changes:
 On May 30th 

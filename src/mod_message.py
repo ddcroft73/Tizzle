@@ -503,7 +503,10 @@ def eval_endtime_date(d: dict, msg: list, lst: list) -> None:
         msg -- a copy of the message from the DB that is being modified
         lst -- change list that is populated and used to display the changes.
     """
-    # ALL OF THIS NEEDS TO BE REFACTORED, It takes to long to figure out what is going on if a bug is found.
+    # ALL OF THIS NEEDS TO BE REFACTORED, THis part of the application got crazy. 
+    # the endtime is affected by the change of the satrt time and the  the dates and times need to reflect
+    # each other. This is all only used to give the user a preview of what they changed compared to what it was
+    # before they commit the changes.
 
     stop_time:      str = msg[END_DATE].split('\n')[0]
     old_start_time: str = get_message_from_disk(msg[ID])[SEND_TIME_DATE].split('\n')[0] 
@@ -538,9 +541,6 @@ def eval_endtime_date(d: dict, msg: list, lst: list) -> None:
             d['_stop_time'] = new_end_time
 
         if d['_start_time'] is not None and d['_date_to_text'] is None :
-            # when the start time changes, need to reflect it on the end time...
-            # THere will already be the new start time in the d[] dictionary
-            # change the endtime to reflect the new start time + the duration.
             new_end_time: str = calculate_end_time(
                 old_start_date, 
                 new_start_time, 

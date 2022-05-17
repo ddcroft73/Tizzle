@@ -8,17 +8,12 @@
 - Enter the settings information into the settings.json file.
 - Have an email address that you can log into and use from a 3rd party aspect. Google 3rd party app help [here](https://support.google.com/accounts/answer/185833?hl=en).
 - Install [tabulate](https://pypi.org/project/tabulate/).
-- Install [html2text](https://github.com/Alir3z4/html2text/).
 - Make sure you are set up for 3rd party access to a [Gmail](www.gmail.com) account. I recommend you set up an account specifically for this. Gmail  is changing their policy on May 30th and I am currently working on a workaround in case tis directly effects the use of this application. 
+- Make sure you enter the correct paths in constants.py that reflect the directory where the responder lives if you decide to use it.
 ___
 ### Install tabulate:
 ```
 :\>python pip install tabulate
-```
-
-### Install Html2Text:
-```
-:\>python pip install html2text
 ```
 
 ### Edit settings.json
@@ -73,7 +68,7 @@ The first contact will always be the default.
 
 You can get a LOT more specific but these are just a couple of the ways the application can be used to remind yourself and the people in your circle about the things you don't want to forget. For more detailed help use the on board help.
 
-There is a lot more you can do to maintain and use the messages. You can `modify` messages that have already been sent. Or you can `modify` messages that have expired if you just want to change them to be active again. The application will `backup` both databases, and you can even recover all the messages if for some reason you delete all the tasks from the scheduler. (It happens) 
+There is a lot more you can do to maintain and use the messages. You can `modify` messages that have already been sent. Or you can `modify` messages that have expired if you just want to change them to be active again. The application will `backup` all databases, and you can even recover all the messages if for some reason you delete all the tasks from the scheduler. (It happens) 
 <br>
 <br>
 <br>
@@ -87,5 +82,3 @@ I plan to find a work around for this if necessary and will likely implement Oau
 <br>
 ## Disclaimer:
 As I'm sure you have realized this application could be used in nefarious ways. I do not intend for you to use this to annoy the hell out of your friends or badger your enemies. It is nothing more than a convenient way to remind yourself, and maybe some other people in your life about important events. 
-
-{ [email](gen.disarray@outlook.com) - [/uHobblingCobbler](https://www.reddit.com/user/HobblingCobbler/) }

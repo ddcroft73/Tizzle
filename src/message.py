@@ -63,12 +63,6 @@ from mod_message import(
 # Maybe look into a small SMTP server to send the texts from your computer. Not sure about security 
 # issues. Will still need IMAP support to use the Responder.
 
-# Dont laugh at this structure. ts not OOP. THe application works really well and I'm sure there are
-# a few things, simple things I overlooked because I wrote it by the seat of my pants, but it is hella
-# useful for sending and scheduling reminders for yourself and anyone eles in just about any way you can think.
-# Plus Its got a sister app that lets you control it from text messages. Shutdown, restart, stop recurring 
-# messages, etc. 
-
 class Message:
     
 
@@ -130,7 +124,6 @@ class Message:
         )          
         if (bad_options): return
 
-        # change the _frequency for Hour\Minute if needed.
         _frequency = self.__set_for_hour_minute(_frequency, _mo)          
 
         end_time_date: str = self.__get_end_time_date(
@@ -151,13 +144,13 @@ class Message:
         if (validate_time_date(_time_to_text, _date_to_text)):
             if (valid_schedule_time(_time_to_text, _date_to_text)):  
 
-                unique_msg_id: str = get_unique_id()            
-                # if this is a group message add the message ID to the contacts ID list
+                unique_msg_id: str = get_unique_id()       
+                
                 if(_dest_type == GROUP):
                     self.__add_msgid_to_contacts_list(unique_msg_id, _destination)    
                 
                 # create the bat file path and command only so that 
-                # WTS has a prom path tho schedule a task for
+                # WTS has a prog path tho schedule a task for.
                 bat_path, bat_command = create_batch_path_command(
                     _msg, 
                     unique_msg_id, 
@@ -290,14 +283,13 @@ class Message:
     def disable_task(self, args: object) -> None:
         """will disable a task associated with a message"""
         _msg_id: str = args.msg_id.upper() 
-        # only viable if it's a recurring task.
-        # check the status to see if it reads, ["Recurring", "Started", "Ready", "Started(m)", "Ready(m)"]
+        # only viable if it's a living task.
         # if not don't disable it
         
         if (_msg_id in get_scheduled_tasks()):
             res: str = self.__get_status(_msg_id)
             
-            if (res in ["Recurring", "Started", "Ready", "Started(m)", "Ready(m)"]):
+            if (res in ["Recurring", "Started", "Ready", "Started(m)", "Ready(m)", "Modified"]):
                 command: str = ["schtasks.exe", "/CHANGE",  "/TN", _msg_id, "/DISABLE"]
 
                 return_code: int = run(command).returncode  
@@ -385,11 +377,9 @@ class Message:
                    f"\n{BLUET}Would you like to commit these changes{ENDC}?", warn=False
                 ): 
 
-                # Is this a group message? If so add it back to the group mebers lists
-                # look up the message in the database by bath file size
+                # Is this a group message? If so add it back to the group members lists
                 if args.dest_type == GROUP or self.__is_group_message(_msg_id):
-                    self.__add_msgid_to_contacts_list(_msg_id, args.destination)
-                
+                    self.__add_msgid_to_contacts_list(_msg_id, args.destination)                
 
                 if edit_batch: 
                    edit_batchfile(args.message, _msg_id, args.destination, args.dest_type)
@@ -406,7 +396,6 @@ class Message:
                 print(f'\n"{BLUET}{_msg_id}{ENDC}" succesfully modified.')    
 #-------------------------------------------------------------------------------------------------------------------------------------------   
     def delete(self, args: object) -> None:
-
         """ Handles the choices for deletion of items in database json, scheduler, batch files. """
         # REWRITE THIS TO USE A MORE TRADITIONAL MENU SYSTEM WITH A LOOP, hell, it works fine. 
 
