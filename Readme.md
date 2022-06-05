@@ -32,6 +32,8 @@ On May 30th
 Google will no longer support the use of third-party apps or devices which ask you to sign in to your Google Account using only your user name and password. Instead, you’ll need to sign in using Sign in with Google or other more secure technologies, like OAuth 2.0. [Learn more](https://accounts.google.com/AccountChooser?Email=ddc.dev.python@gmail.com&continue=https://support.google.com/accounts/answer/6010255?rfn%3D1646361360139%26anexp%3Dnret-fa)
 I plan to find a work around for this if necessary and will likely implement Oauth .2.0. May be an answer [here](https://localcoder.org/python-smtplib-is-sending-mail-via-gmail-using-oauth2-possible).
 
+Apparently it still works. I am still getting texts from email addresses I'd previously set up, though it may not work with new ones. 
+
 ## ## TODO:
 - Add support for oauth authentication (Adapt to Gmails new policy)
 - Build in a simple SMTP mail server to send texts from computer without need for Email account. Not sure about the security of this. Just an idea.
