@@ -105,7 +105,7 @@ class Message:
         
         # Support the use of short dates no year required. 
         _date_to_text, _end_date = eval_date(_date_to_text, _end_date)
-       
+        
         # set defaults
         if (_date_to_text is None): 
             _date_to_text = get_time_date("todays_date")           
@@ -140,66 +140,69 @@ class Message:
             _dest_type
         )
         if (not _destination): return              
+        
+# Removing the date and time checker to deal with a bug that will not allow texts
+# to be set up for monthly recurring texts after any time of the day or month
 
-        if (validate_time_date(_time_to_text, _date_to_text)):
-            if (valid_schedule_time(_time_to_text, _date_to_text)):  
+       # if (validate_time_date(_time_to_text, _date_to_text)):
+       #     if (valid_schedule_time(_time_to_text, _date_to_text)):  
 
-                unique_msg_id: str = get_unique_id()       
-                
-                if(_dest_type == GROUP):
-                    self.__add_msgid_to_contacts_list(unique_msg_id, _destination)    
-                
-                # create the bat file path and command only so that 
-                # WTS has a prog path tho schedule a task for.
-                bat_path, bat_command = create_batch_path_command(
-                    _msg, 
-                    unique_msg_id, 
-                    _destination,
-                    _frequency,
-                    _dest_type
-                )                
-                
-                return_code: int = self.__schedule_task(
-                    _time_to_text, 
-                    _date_to_text,
-                     unique_msg_id, 
-                     bat_path, 
-                    _frequency_sched=_frequency,
-                    _day_of_week_sched=_dow, 
-                    _day_of_month_sched=_dom,
-                    _end_date=end_time_date.split('\n')[1],
-                    _mo=_mo,
-                    _duration=_duration
-                )                             
-                # Since all went well finish up message creation with Db Entry
-                # And creation of actual batch file to launch the app and send text.
-                if (return_code == SUCCESS): 
-                    self.__add_msg_database(
-                        unique_msg_id, 
-                        insert_breaks_and_sep(_msg),         
-                        _destination,
-                        _time_to_text + '\n' + _date_to_text, 
-                        _frequency.upper(), 
-                        end_time_date,
-                        _dow,
-                        _dom
-                    )                   
+        unique_msg_id: str = get_unique_id()       
+        
+        if(_dest_type == GROUP):
+            self.__add_msgid_to_contacts_list(unique_msg_id, _destination)    
+        
+        # create the bat file path and command only so that 
+        # WTS has a prog path tho schedule a task for.
+        bat_path, bat_command = create_batch_path_command(
+            _msg, 
+            unique_msg_id, 
+            _destination,
+            _frequency,
+            _dest_type
+        )                
+        
+        return_code: int = self.__schedule_task(
+            _time_to_text, 
+            _date_to_text,
+                unique_msg_id, 
+                bat_path, 
+            _frequency_sched=_frequency,
+            _day_of_week_sched=_dow, 
+            _day_of_month_sched=_dom,
+            _end_date=end_time_date.split('\n')[1],
+            _mo=_mo,
+            _duration=_duration
+        )                             
+        # Since all went well finish up message creation with Db Entry
+        # And creation of actual batch file to launch the app and send text.
+        if (return_code == SUCCESS): 
+            self.__add_msg_database(
+                unique_msg_id, 
+                insert_breaks_and_sep(_msg),         
+                _destination,
+                _time_to_text + '\n' + _date_to_text, 
+                _frequency.upper(), 
+                end_time_date,
+                _dow,
+                _dom
+            )                   
 
-                    create_batch_file(bat_path, bat_command)       
+            create_batch_file(bat_path, bat_command)       
 
-                    print_report(
-                        unique_msg_id,
-                        _time_to_text,
-                        _destination,
-                        _dest_type,
-                        _date_to_text, 
-                        _frequency,
-                        _mo,
-                        end_time_date.split('\n')[0],
-                        _dow, 
-                        _dom, 
-                        _end_date
-                    )                                    
+            print_report(
+                unique_msg_id,
+                _time_to_text,
+                _destination,
+                _dest_type,
+                _date_to_text, 
+                _frequency,
+                _mo,
+                end_time_date.split('\n')[0],
+                _dow, 
+                _dom, 
+                _end_date
+            )                                    
 #-------------------------------------------------------------------------------------------------------------------------------------------    
     def send(self, args: object) -> None:
         """Depending on the arguments, instigates the sending of text messages to one or more contacts.
@@ -267,7 +270,7 @@ class Message:
         
         if (_msg_id in get_scheduled_tasks()):
             res: str = self.__get_status(_msg_id)
-            if (res == "Disabled"):
+            if (res in ["Disabled", 'Rewind', "Modified"]):
                 command: str = ["schtasks.exe", "/CHANGE",  "/TN", _msg_id, "/ENABLE"]   
 
                 return_code: int = run(command).returncode      
@@ -575,10 +578,10 @@ class Message:
 
         with open(bat_file, 'r') as file:
             file_data: str  = file.readline()
-        
-        file_data: list[str] = file_data.split()
-        
-        if len(file_data) == 8: return True
+        # seperate the commands with '%'
+        file_data = file_data.replace('" "', '%')
+        file_data: list[str] = file_data.split('%')
+        if len(file_data) == 7: return True
 
         return False
         
@@ -659,6 +662,11 @@ class Message:
                    
                    write_data(messages, DB)  
                    print(f'{YELLT}Message{ENDC}: "{BLUET}{_msg_id}{ENDC}" set to rerun on {BLUET}{_start_date}{ENDC}.')
+
+                   # Is this a group message? If so add it back to the group members lists
+                   if self.__is_group_message(_msg_id):
+                        self.__add_msgid_to_contacts_list(_msg_id, get_message_from_disk(_msg_id)[DESTINATION])                
+
                    # show results
                    self.view(_msg_id)
 

@@ -62,6 +62,8 @@ def write_data(_data: list, database: str) -> None:
     with open(database, "w") as file:
        json_dump(_data, file, indent=4)
 #-------------------------------------------------------------------------------------------------------------------------------------------
+
+
 def get_unique_id() -> str:
     """
     [Checks the ids already created in the message DB then creates a
@@ -77,7 +79,7 @@ def get_unique_id() -> str:
         """
            pad out string with a 0 to the left.        
         """
-        res: str
+        res: str = ""
         if len(_num) == 2:
             res = "0" + _num
         return res
@@ -145,6 +147,7 @@ def get_credentials(_user: str, _pass: str) -> list[str]:
     else:
         # as arguments
         ext = ['/RU', _user, '/RP', _pass]
+
     return ext
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def wrap_quotes(_text: str) -> str:
@@ -315,14 +318,14 @@ def lookup_number(args: object) -> None:
 #-------------------------------------------------------------------------------------------------------------------------------------------
 def warn_or_continue(msg: str, warn: bool=True) -> bool:
     """ 
-       much cleaner way to warn user and get input to continue
+       much cleaner way to warn user and\or get input to continue
        or just ask a question.
     """
     warning: str = f'\n{REDT}WARNING{ENDC}: '
     choice: str = f'\n\nContinue ({YELLT}y{ENDC},{YELLT}n{ENDC}) '
     
     res = input(warning + msg + choice) if warn else input(msg + choice)    
-    print()
+    print() # newline for choice
     if res in ['y', 'yes']:
         return True
     else:
@@ -758,10 +761,18 @@ def eval_date(*args: tuple) -> list:
     curr_year:            str = date.strftime("%Y")
     date_:               list = []
     res:                 list = []
-
+   
     for arg in args:
         if arg is not None: 
              date_ = arg.split('/')    
+             # if the month is only 1 digit, user forgot to pad the month with a 0.
+             # handle it
+             if (len(date_[0]) == 1):  date_[0] = '0'+ date_[0]
+
+
+# Majo bug on short year. If say, the current year is decemeber, and user wants to set
+# a text for the next month, it will return the current year. 
+
              if len(date_) != 3: # ie No year
                 date_.append(curr_year)
                 res.append('/'.join(date_))
@@ -856,6 +867,7 @@ def valid_schedule_time(_time: str, _date: str, alt_time_date: str=None, output=
         time_date_now = get_time_date('time_date')
     else:
         time_date_now = alt_time_date
+        
 
     try:
         # scheduled time to validate MM/DD/YYYY 
